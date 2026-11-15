@@ -1,5 +1,11 @@
 # TMTP — Türk Müziği Transpoze ve Nota Replikası Programı
 
+<p>
+  <a href="https://github.com/ferahfeza/TMTP/releases/latest"><img src="https://img.shields.io/github/v/release/ferahfeza/TMTP?label=S%C3%BCr%C3%BCm&color=1a6640" alt="Son Sürüm"></a>
+  <a href="https://github.com/ferahfeza/TMTP/releases/download/v1.0.0/TMTP-v1.0.0-win64.exe"><img src="https://img.shields.io/badge/Windows_10%2F11_(64--bit)-TMTP--v1.0.0--win64.exe-16537e" alt="Windows İndir"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/Lisans-MIT-d4a017" alt="MIT Lisansı"></a>
+</p>
+
 **TMTP (`MakamNotaApp`)**, bilgisayarda kurulu **MuseScore 4** altyapısını kullanarak verilen bir Türk müziği notasının (`.pdf`, `.png`, `.jpg`, `.mscz`, `.mscx`, `.musicxml`, `.mxl`, `.json`) **bire bir replikasını (`0 koma`)** veya **53-Koma Arel-Ezgi-Uzdilek (AEU)** ses sisteminde istenen herhangi bir karar perdesine ya da **Ney ahengine** transpozesini (göçürmesini) üreten bağımsız masaüstü (`PyQt5`) ve komut satırı (`CLI`) uygulamasıdır.
 
 > *English Summary:* **TMTP** is a standalone desktop & CLI studio for **53-EDO Turkish Makam Music (Arel-Ezgi-Uzdilek)** score replication, vector/raster OMR, and exact microtonal transposition (by intervals/commas, tonic *perde*, or 13 *Ney ahenk* tunings), exporting publication-ready `.mscz` and `.pdf` scores via MuseScore 4.
@@ -88,13 +94,12 @@ flowchart LR
 
 ## Kullanım
 
-### 1. Bağımsız Tek-Dosya Windows Uygulaması (`TMTP.exe` — Python Gerektirmez)
-Python kurulu olmayan herhangi bir 64-bit Windows 10/11 bilgisayarda doğrudan çalıştırılabilir tek parça **`dist/TMTP.exe`** üretmek için:
-```powershell
-pip install pyinstaller
-python build_exe.py
-```
-Üretilen `dist/TMTP.exe` dosyası tüm Python, PyQt5, PyMuPDF, OpenCV ve MSVC C/C++ çalışma zamanı bileşenlerini kendi içinde barındırır (yalnızca nota dizgisi/PDF üretimi için hedef bilgisayarda ücretsiz [MuseScore 4](https://musescore.org/) kurulu olması yeterlidir).
+### 1. Hazır Bağımsız Windows Uygulaması (`TMTP-v1.0.0-win64.exe` — Python Gerektirmez)
+Python kurulumuna ihtiyaç duymadan doğrudan indirip çalıştırabilirsiniz:
+* **[📥 TMTP v1.0.0 — Windows 10/11 (64-bit) Taşınabilir `.exe` İndir (`TMTP-v1.0.0-win64.exe`)](https://github.com/ferahfeza/TMTP/releases/download/v1.0.0/TMTP-v1.0.0-win64.exe)**
+* Tüm sürümler: [GitHub Releases (`v1.0.0`)](https://github.com/ferahfeza/TMTP/releases)
+
+*(Kaynak koddan kendiniz `.exe` derlemek isterseniz `pip install pyinstaller` ardından `python build_exe.py` komutunu çalıştırabilirsiniz; çıktı `dist/TMTP.exe` konumunda üretilir.)*
 
 ### 2. Kaynak Koddan Masaüstü Arayüzü
 Windows'ta doğrudan **`Baslat.bat`** dosyasına çift tıklayın veya terminalden çalıştırın:
