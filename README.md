@@ -88,13 +88,21 @@ flowchart LR
 
 ## Kullanım
 
-### 1. Masaüstü Arayüzü (Önerilen)
+### 1. Bağımsız Tek-Dosya Windows Uygulaması (`TMTP.exe` — Python Gerektirmez)
+Python kurulu olmayan herhangi bir 64-bit Windows 10/11 bilgisayarda doğrudan çalıştırılabilir tek parça **`dist/TMTP.exe`** üretmek için:
+```powershell
+pip install pyinstaller
+python build_exe.py
+```
+Üretilen `dist/TMTP.exe` dosyası tüm Python, PyQt5, PyMuPDF, OpenCV ve MSVC C/C++ çalışma zamanı bileşenlerini kendi içinde barındırır (yalnızca nota dizgisi/PDF üretimi için hedef bilgisayarda ücretsiz [MuseScore 4](https://musescore.org/) kurulu olması yeterlidir).
+
+### 2. Kaynak Koddan Masaüstü Arayüzü
 Windows'ta doğrudan **`Baslat.bat`** dosyasına çift tıklayın veya terminalden çalıştırın:
 ```powershell
 python gui_app.py
 ```
 
-### 2. Komut Satırı Arayüzü (`cli.py`)
+### 3. Komut Satırı Arayüzü (`cli.py`)
 ```powershell
 # Tüm hazır aralıkları, karar perdelerini ve 13 Ney ahengini listele:
 python cli.py list-presets
@@ -119,10 +127,11 @@ python cli.py process --input "eser.pdf" --out-dir "./cikti" --steps 0 --commas 
 ```text
 TMTP/
 ├── Baslat.bat                  # Windows tek tıkla masaüstü başlatıcısı
+├── build_exe.py                # Tek parça taşınabilir Windows .exe (dist/TMTP.exe) derleyicisi
 ├── gui_app.py                  # PyQt5 masaüstü kullanıcı arayüzü
 ├── cli.py                      # Komut satırı arayüzü
 ├── requirements.txt            # Python paket bağımlılıkları
-├── assets/                     # Tanıtım videosu (.mp4 ve satır içi .gif)
+├── assets/                     # Uygulama simgesi (.ico) ve tanıtım videosu (.mp4 / .gif)
 ├── makam_app/
 │   ├── aeu_theory.py           # 53-Koma AEU arıza, donanım, perde, Ney ahengi ve cent cebiri
 │   ├── score_model.py          # Nota veri modeli (ScoreDoc), usûl süre doğrulama ve göçürme

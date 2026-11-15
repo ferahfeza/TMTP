@@ -11,6 +11,7 @@ venv/
 env/
 build/
 dist/
+*.spec
 *.egg-info/
 
 # Yerel deneme/örnek çıktı klasörleri

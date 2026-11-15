@@ -9,6 +9,7 @@ MuseScore 4 CLI (MuseScore4.exe) Güvenli Senkron Çalıştırma ve Dışa Aktar
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
@@ -20,17 +21,40 @@ class MuseScoreError(RuntimeError):
 
 
 def _clean_env_for_musescore() -> dict[str, str]:
-    """PyQt5 tarafından ayarlanan QT_* değişkenlerinin Qt6 tabanlı MuseScore4.exe'yi bozmasını önler."""
-    return {k: v for k, v in os.environ.items() if not k.upper().startswith("QT_")}
+    """
+    PyQt5 ve PyInstaller tek-dosya (.exe) ortam değişkenlerinin
+    Qt6 tabanlı MuseScore4.exe ile DLL çakışması yaşamasını önler.
+    """
+    blocked_prefixes = ("QT_", "PYINSTALLER_", "_MEIPASS")
+    blocked_exact = {"PYTHONPATH", "PYTHONHOME", "TCL_LIBRARY", "TK_LIBRARY"}
+    env = {
+        k: v
+        for k, v in os.environ.items()
+        if not k.upper().startswith(blocked_prefixes) and k.upper() not in blocked_exact
+    }
+    meipass = getattr(sys, "_MEIPASS", None)
+    if meipass and "PATH" in env:
+        mei_norm = os.path.normcase(os.path.normpath(meipass))
+        parts = env["PATH"].split(os.pathsep)
+        clean_parts = [
+            p for p in parts if p and os.path.normcase(os.path.normpath(p)) != mei_norm
+        ]
+        env["PATH"] = os.pathsep.join(clean_parts)
+    return env
 
 
 def run_musescore_cli(args: list[str], musescore_exe: str | None = None, timeout: int = 90) -> None:
     exe = musescore_exe or detect_musescore_exe()
     if not os.path.isfile(exe):
-        raise MuseScoreError(f"MuseScore yürütülebilir dosyası bulunamadı: {exe}")
+        raise MuseScoreError(
+            f"MuseScore 4 bulunamadı ({exe}).\n\n"
+            "Lütfen ücretsiz MuseScore 4 programını (https://musescore.org) kurun "
+            "veya farklı bir klasöre kuruluysa üst menüdeki '⚙ Ayarlar' düğmesinden MuseScore4.exe yolunu seçin."
+        )
 
     cmd = [exe, *args]
     child_env = _clean_env_for_musescore()
+    creation_flags = getattr(subprocess, "CREATE_NO_WINDOW", 0) if sys.platform == "win32" else 0
 
     with tempfile.TemporaryFile(mode="w+b") as log_f:
         res = subprocess.run(
@@ -40,6 +64,7 @@ def run_musescore_cli(args: list[str], musescore_exe: str | None = None, timeout
             stdout=log_f,
             stderr=subprocess.STDOUT,
             timeout=timeout,
+            creationflags=creation_flags,
         )
         if res.returncode != 0:
             log_f.seek(0)

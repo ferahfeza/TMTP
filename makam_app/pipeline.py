@@ -19,7 +19,6 @@ from .musescore_runner import (
     convert_any_digital_score_to_mscx_text,
     export_from_mscx_string,
 )
-from .omr_gemini import recognize_score_gemini
 from .omr_opencv import recognize_score_opencv
 from .omr_vector_pdf import has_vector_music_notation, recognize_vector_pdf
 from .score_model import (
@@ -113,6 +112,8 @@ def load_score_source(
             doc = recognize_vector_pdf(in_p, progress_cb=progress_cb)
             src_kind = "vector_pdf"
         elif (mode == "gemini") or (mode == "auto" and bool(api_key)):
+            from .omr_gemini import recognize_score_gemini
+
             doc = recognize_score_gemini(
                 in_p,
                 api_key=api_key,

@@ -11,7 +11,7 @@ from pathlib import Path
 
 import fitz  # PyMuPDF
 from PyQt5.QtCore import QEvent, Qt, QThread, QTimer, pyqtSignal
-from PyQt5.QtGui import QFont, QImage, QPixmap
+from PyQt5.QtGui import QFont, QIcon, QImage, QPixmap
 from PyQt5.QtWidgets import (
     QApplication,
     QCheckBox,
@@ -53,7 +53,7 @@ from makam_app.aeu_theory import (
     nearest_aeu_accidental,
     transpose_keysig_map,
 )
-from makam_app.config import load_settings, save_settings
+from makam_app.config import BUNDLE_DIR, load_settings, save_settings
 from makam_app.mscx_io import score_doc_to_mscx
 from makam_app.musescore_runner import export_from_mscx_string, open_in_musescore_gui
 from makam_app.pipeline import (
@@ -408,6 +408,33 @@ class MainWindow(QMainWindow):
 
         self._build_ui()
         self._sync_interval_from_active_tab()
+        self.setAcceptDrops(True)
+        ico_path = BUNDLE_DIR / "assets" / "tmtp_icon.ico"
+        if ico_path.is_file():
+            self.setWindowIcon(QIcon(str(ico_path)))
+
+    def dragEnterEvent(self, event) -> None:
+        if event.mimeData().hasUrls():
+            event.acceptProposedAction()
+        else:
+            event.ignore()
+
+    def dropEvent(self, event) -> None:
+        for url in event.mimeData().urls():
+            local_p = url.toLocalFile()
+            if local_p and os.path.isfile(local_p):
+                if self.loaded_state is not None and self.has_unsaved_changes:
+                    choice = self._ask_unsaved_action(
+                        "Mevcut dönüştürülmüş nota henüz kaydedilmedi.\n"
+                        "Yeni nota açmadan önce kaydetmek ister misiniz?",
+                        discard_label="Kaydetmeden Yeni Nota Aç",
+                    )
+                    if choice == "cancel":
+                        return
+                    if choice == "save" and not self._prompt_save_synchronously():
+                        return
+                self.start_load_async(Path(local_p))
+                break
 
     def _ask_unsaved_action(self, prompt_text: str, discard_label: str = "Kaydetmeden Çık") -> str:
         """Kullanıcıya Kaydet / Kaydetmeden Devam Et / İptal sorusunu yöneltir ('save', 'discard', 'cancel')."""
@@ -1164,11 +1191,84 @@ class MainWindow(QMainWindow):
         self.progress_bar.setValue(10 if busy else 100)
 
 
+def _run_exe_self_test(report_path: Path, sample_pdf: Path | None) -> int:
+    import json
+    import time
+
+    t0 = time.perf_counter()
+    report: dict = {"ok": False, "frozen": bool(getattr(sys, "frozen", False))}
+    try:
+        import cv2
+        import numpy as np
+
+        # OpenCV çekirdek görüntü işleme doğrulaması
+        dummy = np.zeros((32, 32), dtype=np.uint8)
+        _ = cv2.GaussianBlur(dummy, (3, 3), 0)
+        report["opencv_version"] = cv2.__version__
+        report["pymupdf_version"] = fitz.__doc__ or "ok"
+
+        app = QApplication(sys.argv[:1])
+        app.setStyle("Fusion")
+        win = MainWindow()
+        win.setAttribute(Qt.WA_DontShowOnScreen, True)
+        win.resize(1440, 860)
+        win.show()
+        app.processEvents()
+
+        if sample_pdf and sample_pdf.is_file():
+            st = win.load_file_sync(sample_pdf)
+            win.tabs_mode.setCurrentIndex(2)
+            win.cmb_src_ahenk.setCurrentIndex(7)  # Mansur Ney
+            win.cmb_dst_ahenk.setCurrentIndex(0)  # Bolâhenk Nısfiye
+            res = win.preview_current_sync()
+            report["loaded_measures"] = len(st.score_doc.measures)
+            report["preview_pdf_exists"] = bool(res and res.pdf_path.is_file())
+
+        shot_path = report_path.with_suffix(".png")
+        win.grab().save(str(shot_path))
+        report["screenshot"] = str(shot_path)
+        win.confirm_unsaved_on_close = False
+        win.close()
+
+        report["ok"] = True
+        report["elapsed_sec"] = round(time.perf_counter() - t0, 2)
+        report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+        return 0
+    except Exception:
+        report["error"] = traceback.format_exc()
+        report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+        return 1
+
+
 def main() -> int:
+    if sys.platform == "win32":
+        try:
+            import ctypes
+
+            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("ferahfeza.TMTP.1.0")
+        except Exception:
+            pass
+
+    QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
+    QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
+
+    if len(sys.argv) >= 3 and sys.argv[1] == "--self-test":
+        rep_p = Path(sys.argv[2]).resolve()
+        pdf_p = Path(sys.argv[3]).resolve() if len(sys.argv) >= 4 else None
+        return _run_exe_self_test(rep_p, pdf_p)
+
     app = QApplication(sys.argv)
+    app.setApplicationName("TMTP")
     app.setStyle("Fusion")
+    ico_path = BUNDLE_DIR / "assets" / "tmtp_icon.ico"
+    if ico_path.is_file():
+        app.setWindowIcon(QIcon(str(ico_path)))
+
     win = MainWindow()
     win.show()
+    if len(sys.argv) > 1 and os.path.isfile(sys.argv[1]):
+        initial_path = Path(sys.argv[1]).resolve()
+        QTimer.singleShot(150, lambda: win.start_load_async(initial_path))
     return app.exec_()
 
 
