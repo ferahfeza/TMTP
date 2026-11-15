@@ -6,6 +6,19 @@
 
 ---
 
+## Tanıtım Videosu
+
+<div align="center">
+  <a href="https://github.com/ferahfeza/TMTP/raw/main/assets/tmtp_tanitim.mp4">
+    <img src="assets/tmtp_tanitim.gif" alt="TMTP — Türk Müziği Transpoze Programı Tanıtım Videosu" width="100%">
+  </a>
+  <p>
+    <em>Yukarıdaki canlı önizleme doğrudan oynar; <strong>53-EDO Şevkefzâ sesli tam çözünürlüklü sürüm</strong> için <a href="https://github.com/ferahfeza/TMTP/raw/main/assets/tmtp_tanitim.mp4"><strong>🎬 Sesli Tanıtım Videosunu Aç / İndir (MP4)</strong></a> bağlantısına tıklayabilirsiniz.</em>
+  </p>
+</div>
+
+---
+
 ## Öne Çıkan Özellikler
 
 ### 1. Tam 53-Koma Arel-Ezgi-Uzdilek (AEU) Göçürme Motoru
@@ -109,6 +122,7 @@ TMTP/
 ├── gui_app.py                  # PyQt5 masaüstü kullanıcı arayüzü
 ├── cli.py                      # Komut satırı arayüzü
 ├── requirements.txt            # Python paket bağımlılıkları
+├── assets/                     # Tanıtım videosu (.mp4 ve satır içi .gif)
 ├── makam_app/
 │   ├── aeu_theory.py           # 53-Koma AEU arıza, donanım, perde, Ney ahengi ve cent cebiri
 │   ├── score_model.py          # Nota veri modeli (ScoreDoc), usûl süre doğrulama ve göçürme
